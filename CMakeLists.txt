@@ -1,22 +1,34 @@
-# --- MODULE AVAILABLE ON WINDOWS ONLY ---
 
-if(WIN32)
+#-----------------------------------------------------------------------------
+set(MODULE_NAME "Kinect4Slicer")
+set(MODULE_TITLE ${MODULE_NAME})
 
-# Module name (usually identique to the directory name)
-set(qt_module_name "Kinect4Slicer")
-set(qt_module_title "Kinect4Slicer")
+string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
-# Build module sub libraries
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR)
+  find_package(Slicer REQUIRED)
+  include(${Slicer_USE_FILE})
+endif()
+
+#-----------------------------------------------------------------------------
+# --- MODULE AVAILABLE ON WINDOWS 64-bit ONLY ---
+if(NOT (WIN32 AND CMAKE_SIZEOF_VOID_P MATCHES 8))
+  return()
+endif()
+
+#-----------------------------------------------------------------------------
+file(TO_CMAKE_PATH "$ENV{KINECTSDK10_DIR}" KINECTSDK)
+file(TO_CMAKE_PATH "$ENV{KINECTSDK10_DIR}lib/amd64/Kinect10.lib" KINECTLIB)
+
+#-----------------------------------------------------------------------------
 add_subdirectory(Logic)
 add_subdirectory(MRML)
 
-set(qt_module_export_directive "Q_SLICER_QTMODULES_KINECT4SLICER_EXPORT")
+#-----------------------------------------------------------------------------
+set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_KINECT4SLICER_EXPORT")
 
-FILE(TO_CMAKE_PATH "$ENV{KINECTSDK10_DIR}" KINECTSDK)
-FILE(TO_CMAKE_PATH "$ENV{KINECTSDK10_DIR}lib/amd64/Kinect10.lib" KINECTLIB)
-
-# Additional includes - Current_{source,binary} and Slicer_{Libs,Base} already included
-set(qt_module_include_directories
+set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_SOURCE_DIR}/Widgets
   ${CMAKE_CURRENT_BINARY_DIR}/Widgets
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
@@ -26,61 +38,49 @@ set(qt_module_include_directories
   ${KINECTSDK}/inc
   )
 
-# Source files
-set(qt_module_SRCS
-  qSlicerKinect4SlicerModule.cxx
-  qSlicerKinect4SlicerModule.h
-  qSlicerKinect4SlicerModuleWidget.cxx
-  qSlicerKinect4SlicerModuleWidget.h
+set(MODULE_SRCS
+  qSlicer${MODULE_NAME}Module.cxx
+  qSlicer${MODULE_NAME}Module.h
+  qSlicer${MODULE_NAME}ModuleWidget.cxx
+  qSlicer${MODULE_NAME}ModuleWidget.h
   )
 
-# Headers that should run through moc
-set(qt_module_MOC_SRCS
-  qSlicerKinect4SlicerModule.h
-  qSlicerKinect4SlicerModuleWidget.h
+set(MODULE_MOC_SRCS
+  qSlicer${MODULE_NAME}Module.h
+  qSlicer${MODULE_NAME}ModuleWidget.h
   )
 
-# UI files
-set(qt_module_UI_SRCS
-  Resources/UI/qSlicerKinect4SlicerModule.ui
+set(MODULE_UI_SRCS
+  Resources/UI/qSlicer${MODULE_NAME}Module.ui
   )
 
-
-# Additional Target libraries
 
 add_library(KinectLib STATIC IMPORTED)
 set_property(TARGET KinectLib PROPERTY IMPORTED_LOCATION ${KINECTLIB})
 
-set(qt_module_target_libraries
-  vtkSlicerKinect4SlicerModuleLogic
-  vtkSlicerKinect4SlicerModuleMRML
+set(MODULE_TARGET_LIBRARIES
+  vtkSlicer${MODULE_NAME}ModuleLogic
+  vtkSlicer${MODULE_NAME}ModuleMRML
   )
 
-# Resources
-set(qt_module_resources
-  Resources/qSlicerKinect4SlicerModule.qrc
+set(MODULE_RESOURCES
+  Resources/qSlicer${MODULE_NAME}Module.qrc
   )
 
+#-----------------------------------------------------------------------------
 slicerMacroBuildQtModule(
-  NAME ${qt_module_name}
-  TITLE ${qt_module_title}
-  EXPORT_DIRECTIVE ${qt_module_export_directive}
-  INCLUDE_DIRECTORIES ${qt_module_include_directories}
-  SRCS ${qt_module_SRCS}
-  MOC_SRCS ${qt_module_MOC_SRCS}
-  UI_SRCS ${qt_module_UI_SRCS}
-  TARGET_LIBRARIES ${qt_module_target_libraries}
-  RESOURCES ${qt_module_resources}
+  NAME ${MODULE_NAME}
+  TITLE ${MODULE_TITLE}
+  EXPORT_DIRECTIVE ${MODULE_EXPORT_DIRECTIVE}
+  INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}
+  SRCS ${MODULE_SRCS}
+  MOC_SRCS ${MODULE_MOC_SRCS}
+  UI_SRCS ${MODULE_UI_SRCS}
+  TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES} #KinectLib
+  RESOURCES ${MODULE_RESOURCES}
   )
-
-#target_link_libraries(qSlicerKinect4SlicerModule KinectLib)
-
-
-
 
 if(BUILD_TESTING)
   add_subdirectory(Testing)
 endif()
 
-
-endif()
